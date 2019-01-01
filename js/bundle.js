@@ -224,6 +224,7 @@ let cameraYMin = 0;
 let gameState = 'play';
 
 const highScore = localStorage.getItem('highscore');
+
 if(highScore  === null) localStorage.setItem('highscore', 0);
 
 let game = new Phaser.Game(400, 600, Phaser.AUTO, 'phaser-example', {
@@ -238,6 +239,10 @@ function preload(){
     Entities.preload(game);
 }
 function create(){
+    game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+    // game.scale.pageAlignHorizontally = true;
+    // game.scale.pageAlignVertically = true;
+
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.physics.arcade.gravity.y = 0;
 
