@@ -32,10 +32,12 @@ gameOver = (finalScore, highScore) => {
         if(localStorage['highscore'] < finalScore){
             localStorage['highscore'] = finalScore;
             gameOverMessage = 'NEW HIGH SCORE!';
+            highScoreText.text = finalScore;
+        } else {
+            highScoreText.text = highScore;
         }
 
         finalScoreText.text = finalScore;
-        highScoreText.text = highScore;
         completionText.text = gameOverMessage;
         restartBtn.visible = true;
 

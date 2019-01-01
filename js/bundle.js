@@ -224,7 +224,6 @@ let cameraYMin = 0;
 let gameState = 'play';
 
 const highScore = localStorage.getItem('highscore');
-
 if(highScore  === null) localStorage.setItem('highscore', 0);
 
 let game = new Phaser.Game(400, 600, Phaser.AUTO, 'phaser-example', {
@@ -240,8 +239,6 @@ function preload(){
 }
 function create(){
     game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-    // game.scale.pageAlignHorizontally = true;
-    // game.scale.pageAlignVertically = true;
 
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.physics.arcade.gravity.y = 0;
@@ -407,9 +404,14 @@ handleInput = (cursors) => {
     monkey.body.velocity.x = 0;
     game.world.wrap( monkey, 10, false );
 
-    if(cursors.right.isDown){monkey.body.velocity.x = 350;};
-    if(cursors.left.isDown){monkey.body.velocity.x = -350;};
-    if(cursors.up.isDown){fireBullet()};
+    if((cursors.right.isDown && !cursors.left.isDown) || (game.input.pointer1.isDown && game.input.pointer1.x > game.world.centerX)){
+        monkey.body.velocity.x = 350;
+    };
+    if((cursors.left.isDown && !cursors.right.isDown) || (game.input.pointer1.isDown && game.input.pointer1.x < game.world.centerX)){
+        monkey.body.velocity.x = -350;
+    };
+
+    if(cursors.up.isDown || game.input.pointer2.isDown){fireBullet()};
     monkey.yChange = Math.max( monkey.yChange, Math.abs( monkey.y - monkey.yOrig ) );
 
     if(monkey.y - game.camera.y > game.height && !fallSoundPlayed){
@@ -559,10 +561,12 @@ gameOver = (finalScore, highScore) => {
         if(localStorage['highscore'] < finalScore){
             localStorage['highscore'] = finalScore;
             gameOverMessage = 'NEW HIGH SCORE!';
+            highScoreText.text = finalScore;
+        } else {
+            highScoreText.text = highScore;
         }
 
         finalScoreText.text = finalScore;
-        highScoreText.text = highScore;
         completionText.text = gameOverMessage;
         restartBtn.visible = true;
 
