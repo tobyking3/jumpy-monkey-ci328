@@ -10,3 +10,9 @@ canvas {
     margin-left: auto;
     margin-right: auto;
 }
+
+a {
+    text-decoration: none;
+    font-size: 8px;
+    color: lightgrey;
+}

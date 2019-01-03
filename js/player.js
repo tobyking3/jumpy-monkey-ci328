@@ -68,18 +68,20 @@ createBullets = () => {
 
 handleInput = (cursors) => {
     monkey.body.velocity.x = 0;
+    //allow monkey to teleport from side to side
     game.world.wrap( monkey, 10, false );
-
+    //move character when arrow keys are pressed or when the screen is touched depending on the position
     if((cursors.right.isDown && !cursors.left.isDown) || (game.input.pointer1.isDown && game.input.pointer1.x > game.world.centerX && game.input.pointer1.y > 350)){
         monkey.body.velocity.x = 350;
     };
     if((cursors.left.isDown && !cursors.right.isDown) || (game.input.pointer1.isDown && game.input.pointer1.x < game.world.centerX && game.input.pointer1.y > 350)){
         monkey.body.velocity.x = -350;
     };
-
+    //fire bullet when up arrow is pressed or finger touches the top half of the screen
     if(cursors.up.isDown || (game.input.pointer1.isDown && game.input.pointer1.y < 250) || (game.input.pointer2.isDown && game.input.pointer2.y < 250)) fireBullet();
     monkey.yChange = Math.max( monkey.yChange, Math.abs( monkey.y - monkey.yOrig ) );
 
+    //kill monkey when it falls below the camera = game over
     if(monkey.y - game.camera.y > game.height && !fallSoundPlayed){
         fallSoundPlayed = true;
         isMonkeyAlive = false;
@@ -89,13 +91,14 @@ handleInput = (cursors) => {
 
 fireBullet = () => {
     if(game.time.now > bulletTime){
+        //bullet pooling
         bullet = bullets.getFirstExists(false);
         if(bullet){
             throwBanana.play();
             bullet.reset(monkey.x + (monkey.width / 2),monkey.y);
             bullet.body.velocity.y = -900;
             bullet.body.velocity.x = 0;
-
+            //add a direction to the bullet when the left and right cursors are down or when the touch is near the edge of the screen
             if(cursors.right.isDown || game.input.pointer1.x > 300) bullet.body.velocity.x = 400;
             if(cursors.left.isDown || game.input.pointer1.x < 100) bullet.body.velocity.x = -400;
             bullet.angle += 35;
@@ -104,7 +107,7 @@ fireBullet = () => {
     }
 }
 
-//=====================COLLISIONS============================
+//==============================COLLISIONS==================================
 
 monkeyJump = (monkey, platforms) => {
     if(monkey.body.touching.down && monkey.body.velocity.y >= 0){
@@ -134,6 +137,8 @@ collideEnemy = (monkey, enemy) => {
     const monkeyRight = monkeyLeft + monkey.width;
     const enemyRight = enemy.x + enemy.width;
     const enemyLeft = enemy.x;
+
+    //custom collision detection to address unexpected collision behaviour
 
     if(monkeyBottom < enemyTop){
         killSound.play();

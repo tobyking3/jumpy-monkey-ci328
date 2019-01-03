@@ -52,10 +52,17 @@ createGroups = () => {
     bananas.setAll('body.collideWorldBounds', true);
     traps.setAll('body.collideWorldBounds', true);
 
+    /* Create multiple group objects. 
+    Platforms and enemies are created manually as they contain multiple sprite variations
+    */
+
     trampolines.createMultiple(10, 'trampoline');
     rockets.createMultiple(10, 'rocket');
     bananas.createMultiple(10, 'banana');
     traps.createMultiple(10, 'trap');
+
+    /* Properties can be set on the collapsing platform group up front as only 10 will ever exist.
+    */
 
     collapsingPlatforms.createMultiple(10, 'branch');
     collapsingPlatforms.setAll('body.collideWorldBounds', true);
@@ -67,12 +74,14 @@ createGroups = () => {
 createPlatforms = () => {
     for( let i = 0; i < 8; i++ ) {
         let initialY = 75 * (1 + i);
+        //conditional (ternary) operator to center the lowest platform and randomize the others
         let initialX = i === 7 ? 180 : game.rnd.between(0, game.width - 60);
         createPlatform('grass',null,initialY, initialX);
     }
 }
 
 createPlatform = (type, platformVelocity, yPos, xPos) => {
+    //Returns the first dead platform an recycles it
     platform = platforms.getFirstDead(true, xPos, yPos, type);
     platform.scale.setTo(0.2,0.2);
     platform.body.allowGravity = false;
@@ -82,7 +91,6 @@ createPlatform = (type, platformVelocity, yPos, xPos) => {
     platform.body.checkCollision.left = false;
     platform.body.checkCollision.right = false;
 
-    // https://stackoverflow.com/questions/8611830/javascript-random-positive-or-negative-number
     if (platformVelocity){
         let plusOrMinus = Math.random() < 0.5 ? -1 : 1;
         platform.body.velocity.x = platformVelocity * plusOrMinus;
@@ -90,6 +98,7 @@ createPlatform = (type, platformVelocity, yPos, xPos) => {
 }
 
 createEnemy = (yPos, xPos, hasSheild) => {
+    //creates an enemy from one of the three enemy image variations
     let enemyNumber = game.rnd.between(1, 3);
     if(!hasSheild) enemySound.play();
     enemy = enemies.create(xPos + game.rnd.between(0, 40), yPos - 100, 'enemy' + enemyNumber);
@@ -97,6 +106,7 @@ createEnemy = (yPos, xPos, hasSheild) => {
 }
 
 createSpikes = () => {
+    //creates a line of spikes either side of the screen
     spikes.create(0, 0, 'spikesleft');
     spikes.create(388, 0, 'spikesright');
     spikes.setAll('fixedToCamera', true);
@@ -129,6 +139,7 @@ spawnCollapsingPlatform = (yPos) => {
 }
 
 outOfBoundsDestroy = (cameraYMin, item) => {
+    //kills the item if it falls out of view of the camera
     if(item.y - cameraYMin > 600) item.kill();
 }
 
@@ -141,12 +152,18 @@ factory = (cameraYMin, score, hasSheild) => {
     trampolines.forEachAlive(function(trampoline) {outOfBoundsDestroy(cameraYMin, trampoline)});
 
     platforms.forEachAlive(function(platform) {
+        //checks if any of the platforms have fallen below the camera
         if(platform.y - cameraYMin > 600){
+            //if so kill it
             platform.kill();
 
             let y = platformY -= 75;
             let x = game.rnd.between(0, game.width - 60);
             let random = game.rnd.between(0, 500);
+
+            /* Logic determines the speed and platform type depending on the score.
+                The difficulty increases as the score gets higher.
+            */
 
             if(score < 5000){
                 createPlatform('grass', null, y, x);
@@ -206,6 +223,8 @@ factory = (cameraYMin, score, hasSheild) => {
                 }
             }
 
+
+            //randomly generate entities
             if(random % 2 === 0) spawnBanana(y, x);
             if(random % 251 === 0) spawnRocket(y, x);
             if(random % 91 === 0) spawnTrampoline(y, x);
@@ -253,6 +272,7 @@ function preload(){
     Entities.preload(game);
 }
 function create(){
+    //scale manager resizes the canvas to fill the viewport
     game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.physics.arcade.gravity.y = 0;
@@ -303,7 +323,7 @@ function update(){
         //OVERLAP COLLECT
         game.physics.arcade.overlap(monkey, bananas, Player.collectBanana);
         game.physics.arcade.overlap(monkey, rockets, Player.collectRocket);
-
+        //Only check for collision when the monkey does not have the sheild which is set when collecting the rocket
         if(!Player.hasSheild()){
             game.physics.arcade.collide(monkey, enemies, Player.collideEnemy);
             game.physics.arcade.collide(monkey, spikes, Player.monkeyDie);
@@ -315,8 +335,18 @@ function update(){
 }
 
 handleCamera = () => {
+    /**************************************************
+    * Title: Phaser Jump Game
+    * Author: Rugile, J
+    * Date: 2018
+    * Code version: unknown
+    * Availability: https://codepen.io/jackrugile/pen/fqHtn
+    ***************************************************/
+
+    // y offset and the height of the world are adjusted to match the highest point the monkey has reached
     monkey.yChange = Math.max( monkey.yChange, Math.abs( monkey.y - monkey.yOrig ) );
     game.world.setBounds(0, -monkey.yChange, game.width, game.height + monkey.yChange);
+    // custom follow camera that won't move down
     cameraYMin = Math.min( cameraYMin, monkey.y - game.height + 250 );
     game.camera.y = cameraYMin;
 }
@@ -421,18 +451,20 @@ createBullets = () => {
 
 handleInput = (cursors) => {
     monkey.body.velocity.x = 0;
+    //allow monkey to teleport from side to side
     game.world.wrap( monkey, 10, false );
-
+    //move character when arrow keys are pressed or when the screen is touched depending on the position
     if((cursors.right.isDown && !cursors.left.isDown) || (game.input.pointer1.isDown && game.input.pointer1.x > game.world.centerX && game.input.pointer1.y > 350)){
         monkey.body.velocity.x = 350;
     };
     if((cursors.left.isDown && !cursors.right.isDown) || (game.input.pointer1.isDown && game.input.pointer1.x < game.world.centerX && game.input.pointer1.y > 350)){
         monkey.body.velocity.x = -350;
     };
-
+    //fire bullet when up arrow is pressed or finger touches the top half of the screen
     if(cursors.up.isDown || (game.input.pointer1.isDown && game.input.pointer1.y < 250) || (game.input.pointer2.isDown && game.input.pointer2.y < 250)) fireBullet();
     monkey.yChange = Math.max( monkey.yChange, Math.abs( monkey.y - monkey.yOrig ) );
 
+    //kill monkey when it falls below the camera = game over
     if(monkey.y - game.camera.y > game.height && !fallSoundPlayed){
         fallSoundPlayed = true;
         isMonkeyAlive = false;
@@ -442,13 +474,14 @@ handleInput = (cursors) => {
 
 fireBullet = () => {
     if(game.time.now > bulletTime){
+        //bullet pooling
         bullet = bullets.getFirstExists(false);
         if(bullet){
             throwBanana.play();
             bullet.reset(monkey.x + (monkey.width / 2),monkey.y);
             bullet.body.velocity.y = -900;
             bullet.body.velocity.x = 0;
-
+            //add a direction to the bullet when the left and right cursors are down or when the touch is near the edge of the screen
             if(cursors.right.isDown || game.input.pointer1.x > 300) bullet.body.velocity.x = 400;
             if(cursors.left.isDown || game.input.pointer1.x < 100) bullet.body.velocity.x = -400;
             bullet.angle += 35;
@@ -457,7 +490,7 @@ fireBullet = () => {
     }
 }
 
-//=====================COLLISIONS============================
+//==============================COLLISIONS==================================
 
 monkeyJump = (monkey, platforms) => {
     if(monkey.body.touching.down && monkey.body.velocity.y >= 0){
@@ -487,6 +520,8 @@ collideEnemy = (monkey, enemy) => {
     const monkeyRight = monkeyLeft + monkey.width;
     const enemyRight = enemy.x + enemy.width;
     const enemyLeft = enemy.x;
+
+    //custom collision detection to address unexpected collision behaviour
 
     if(monkeyBottom < enemyTop){
         killSound.play();
@@ -576,7 +611,7 @@ gameOver = (finalScore, highScore) => {
     if(gameState === 'play'){
         gameState = 'gameover';
         gameOverMessage = 'Try again!';
-
+        //compare current score to high score
         if(localStorage['highscore'] < finalScore){
             localStorage['highscore'] = finalScore;
             gameOverMessage = 'NEW HIGH SCORE!';

@@ -21,6 +21,7 @@ function preload(){
     Entities.preload(game);
 }
 function create(){
+    //scale manager resizes the canvas to fill the viewport
     game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.physics.arcade.gravity.y = 0;
@@ -71,7 +72,7 @@ function update(){
         //OVERLAP COLLECT
         game.physics.arcade.overlap(monkey, bananas, Player.collectBanana);
         game.physics.arcade.overlap(monkey, rockets, Player.collectRocket);
-
+        //Only check for collision when the monkey does not have the sheild which is set when collecting the rocket
         if(!Player.hasSheild()){
             game.physics.arcade.collide(monkey, enemies, Player.collideEnemy);
             game.physics.arcade.collide(monkey, spikes, Player.monkeyDie);
@@ -83,8 +84,18 @@ function update(){
 }
 
 handleCamera = () => {
+    /**************************************************
+    * Title: Phaser Jump Game
+    * Author: Rugile, J
+    * Date: 2018
+    * Code version: unknown
+    * Availability: https://codepen.io/jackrugile/pen/fqHtn
+    ***************************************************/
+
+    // y offset and the height of the world are adjusted to match the highest point the monkey has reached
     monkey.yChange = Math.max( monkey.yChange, Math.abs( monkey.y - monkey.yOrig ) );
     game.world.setBounds(0, -monkey.yChange, game.width, game.height + monkey.yChange);
+    // custom follow camera that won't move down
     cameraYMin = Math.min( cameraYMin, monkey.y - game.height + 250 );
     game.camera.y = cameraYMin;
 }

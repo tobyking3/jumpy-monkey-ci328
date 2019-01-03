@@ -51,10 +51,17 @@ createGroups = () => {
     bananas.setAll('body.collideWorldBounds', true);
     traps.setAll('body.collideWorldBounds', true);
 
+    /* Create multiple group objects. 
+    Platforms and enemies are created manually as they contain multiple sprite variations
+    */
+
     trampolines.createMultiple(10, 'trampoline');
     rockets.createMultiple(10, 'rocket');
     bananas.createMultiple(10, 'banana');
     traps.createMultiple(10, 'trap');
+
+    /* Properties can be set on the collapsing platform group up front as only 10 will ever exist.
+    */
 
     collapsingPlatforms.createMultiple(10, 'branch');
     collapsingPlatforms.setAll('body.collideWorldBounds', true);
@@ -66,12 +73,14 @@ createGroups = () => {
 createPlatforms = () => {
     for( let i = 0; i < 8; i++ ) {
         let initialY = 75 * (1 + i);
+        //conditional (ternary) operator to center the lowest platform and randomize the others
         let initialX = i === 7 ? 180 : game.rnd.between(0, game.width - 60);
         createPlatform('grass',null,initialY, initialX);
     }
 }
 
 createPlatform = (type, platformVelocity, yPos, xPos) => {
+    //Returns the first dead platform an recycles it
     platform = platforms.getFirstDead(true, xPos, yPos, type);
     platform.scale.setTo(0.2,0.2);
     platform.body.allowGravity = false;
@@ -81,7 +90,6 @@ createPlatform = (type, platformVelocity, yPos, xPos) => {
     platform.body.checkCollision.left = false;
     platform.body.checkCollision.right = false;
 
-    // https://stackoverflow.com/questions/8611830/javascript-random-positive-or-negative-number
     if (platformVelocity){
         let plusOrMinus = Math.random() < 0.5 ? -1 : 1;
         platform.body.velocity.x = platformVelocity * plusOrMinus;
@@ -89,6 +97,7 @@ createPlatform = (type, platformVelocity, yPos, xPos) => {
 }
 
 createEnemy = (yPos, xPos, hasSheild) => {
+    //creates an enemy from one of the three enemy image variations
     let enemyNumber = game.rnd.between(1, 3);
     if(!hasSheild) enemySound.play();
     enemy = enemies.create(xPos + game.rnd.between(0, 40), yPos - 100, 'enemy' + enemyNumber);
@@ -96,6 +105,7 @@ createEnemy = (yPos, xPos, hasSheild) => {
 }
 
 createSpikes = () => {
+    //creates a line of spikes either side of the screen
     spikes.create(0, 0, 'spikesleft');
     spikes.create(388, 0, 'spikesright');
     spikes.setAll('fixedToCamera', true);
@@ -128,6 +138,7 @@ spawnCollapsingPlatform = (yPos) => {
 }
 
 outOfBoundsDestroy = (cameraYMin, item) => {
+    //kills the item if it falls out of view of the camera
     if(item.y - cameraYMin > 600) item.kill();
 }
 
@@ -140,12 +151,18 @@ factory = (cameraYMin, score, hasSheild) => {
     trampolines.forEachAlive(function(trampoline) {outOfBoundsDestroy(cameraYMin, trampoline)});
 
     platforms.forEachAlive(function(platform) {
+        //checks if any of the platforms have fallen below the camera
         if(platform.y - cameraYMin > 600){
+            //if so kill it
             platform.kill();
 
             let y = platformY -= 75;
             let x = game.rnd.between(0, game.width - 60);
             let random = game.rnd.between(0, 500);
+
+            /* Logic determines the speed and platform type depending on the score.
+                The difficulty increases as the score gets higher.
+            */
 
             if(score < 5000){
                 createPlatform('grass', null, y, x);
@@ -205,6 +222,8 @@ factory = (cameraYMin, score, hasSheild) => {
                 }
             }
 
+
+            //randomly generate entities
             if(random % 2 === 0) spawnBanana(y, x);
             if(random % 251 === 0) spawnRocket(y, x);
             if(random % 91 === 0) spawnTrampoline(y, x);

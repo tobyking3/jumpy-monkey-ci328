@@ -27,7 +27,7 @@ gameOver = (finalScore, highScore) => {
     if(gameState === 'play'){
         gameState = 'gameover';
         gameOverMessage = 'Try again!';
-
+        //compare current score to high score
         if(localStorage['highscore'] < finalScore){
             localStorage['highscore'] = finalScore;
             gameOverMessage = 'NEW HIGH SCORE!';
