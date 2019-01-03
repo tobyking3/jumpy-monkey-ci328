@@ -13,8 +13,8 @@ let bananaSound;
 let rocketSound;
 let killSound;
 
-preload = (inputGame) => {
-    game = inputGame;
+preload = (gameObj) => {
+    game = gameObj;
     game.load.audio('jump', ['assets/sounds/jump.mp3', 'assets/sounds/jump.ogg']);
     game.load.audio('bounce', 'assets/sounds/boing.wav');
     game.load.audio('ouch', 'assets/sounds/ouch.wav');
@@ -77,7 +77,7 @@ handleInput = (cursors) => {
         monkey.body.velocity.x = -350;
     };
 
-    if(cursors.up.isDown || game.input.pointer2.isDown){fireBullet()};
+    if(cursors.up.isDown || game.input.pointer1.isDown) fireBullet();
     monkey.yChange = Math.max( monkey.yChange, Math.abs( monkey.y - monkey.yOrig ) );
 
     if(monkey.y - game.camera.y > game.height && !fallSoundPlayed){
@@ -86,6 +86,24 @@ handleInput = (cursors) => {
         fallSound.play();
     };
 };
+
+fireBullet = () => {
+    if(game.time.now > bulletTime){
+        bullet = bullets.getFirstExists(false);
+        if(bullet){
+            throwBanana.play();
+            bullet.reset(monkey.x + (monkey.width / 2),monkey.y);
+            bullet.body.velocity.y = -900;
+            bullet.body.velocity.x = 0;
+            if(cursors.right.isDown) bullet.body.velocity.x = 400;
+            if(cursors.left.isDown) bullet.body.velocity.x = -400;
+            bullet.angle += 35;
+            bulletTime = game.time.now + 200;
+        }
+    }
+}
+
+//=====================COLLISIONS============================
 
 monkeyJump = (monkey, platforms) => {
     if(monkey.body.touching.down && monkey.body.velocity.y >= 0){
@@ -106,15 +124,15 @@ monkeyBounce = (monkey, platforms) => {
 }
 
 collideEnemy = (monkey, enemy) => {
-    var monkeyTop = monkey.y + 10;
-    var monkeyBottom = monkey.y + monkey.height;
-    var enemyTop = enemy.y + 2;
-    var enemyBottom = enemy.y + enemy.height;
+    const monkeyTop = monkey.y + 10;
+    const monkeyBottom = monkey.y + monkey.height;
+    const enemyTop = enemy.y + 2;
+    const enemyBottom = enemy.y + enemy.height;
 
-    var monkeyLeft = monkey.x + 25;
-    var monkeyRight = monkeyLeft + monkey.width;
-    var enemyRight = enemy.x + enemy.width;
-    var enemyLeft = enemy.x;
+    const monkeyLeft = monkey.x + 25;
+    const monkeyRight = monkeyLeft + monkey.width;
+    const enemyRight = enemy.x + enemy.width;
+    const enemyLeft = enemy.x;
 
     if(monkeyBottom < enemyTop){
         killSound.play();
@@ -125,33 +143,15 @@ collideEnemy = (monkey, enemy) => {
     }
 }
 
-hitTrap = (monkey, trap) => {
-    var monkeyBottom = monkey.y + monkey.height;
-    var trapTop = trap.y + 2;
-    if(monkeyBottom < trapTop){
-        monkeyDie();
-    }
+collideTrap = (monkey, trap) => {
+    let monkeyBottom = monkey.y + monkey.height;
+    let trapTop = trap.y + 2;
+    if(monkeyBottom < trapTop) monkeyDie();
 }
 
 monkeyDie = () => {
     ouchSound.play();
     isMonkeyAlive = false;
-}
-
-fireBullet = () => {
-    if(game.time.now > bulletTime){
-        bullet = bullets.getFirstExists(false);
-        if(bullet){
-            throwBanana.play();
-            bullet.reset(monkey.x + (monkey.width / 2),monkey.y);
-            bullet.body.velocity.y = -900;
-            bullet.body.velocity.x = 0;
-            if(cursors.right.isDown){bullet.body.velocity.x = 400;}
-            if(cursors.left.isDown){bullet.body.velocity.x = -400;}
-            bullet.angle += 35;
-            bulletTime = game.time.now + 200;
-        }
-    }
 }
 
 collectBanana = (monkey, banana) => {
@@ -175,20 +175,20 @@ shootEnemy = (bullets, enemy) => {
 }
 
 module.exports = {
-    preload: preload,
-    createMonkey: createMonkey,
-    handleInput: handleInput,
-    createBullets: createBullets,
-    monkeyJump: monkeyJump,
-    monkeyBounce: monkeyBounce,
-    collectBanana: collectBanana,
-    collectRocket: collectRocket,
-    shootEnemy: shootEnemy,
-    hasSheild: hasSheild,
-    collideEnemy: collideEnemy,
-    isAlive: isAlive,
-    respawn: respawn,
-    createSounds: createSounds,
-    monkeyDie: monkeyDie,
-    hitTrap: hitTrap,
+    preload,
+    createMonkey,
+    handleInput,
+    createBullets,
+    monkeyJump,
+    monkeyBounce,
+    collectBanana,
+    collectRocket,
+    shootEnemy,
+    hasSheild,
+    collideEnemy,
+    isAlive,
+    respawn,
+    createSounds,
+    monkeyDie,
+    collideTrap,
 };

@@ -4,8 +4,8 @@ let platformY = 75;
 let enemySound;
 let hasSpikes = false;
 
-preload = (inputGame) => {
-    game = inputGame;
+preload = (gameObj) => {
+    game = gameObj;
 
     game.load.audio('bananaCollection', 'assets/sounds/collectbanana.wav');
     game.load.audio('rocketCollection', 'assets/sounds/collectrocket.wav');
@@ -32,6 +32,8 @@ preload = (inputGame) => {
 
 restartEntities = () => platformY = 75;
 
+createSounds = () => enemySound = game.sound.add('hunterlaugh');
+
 createGroups = () => {
     platforms           = game.add.physicsGroup();
     collapsingPlatforms = game.add.physicsGroup();
@@ -43,26 +45,29 @@ createGroups = () => {
     traps               = game.add.physicsGroup();
 
     platforms.setAll('body.collideWorldBounds', true);
-    collapsingPlatforms.setAll('body.collideWorldBounds', true);
-    bananas.setAll('body.collideWorldBounds', true);
-    rockets.setAll('body.collideWorldBounds', true);
-    trampolines.setAll('body.collideWorldBounds', true);
     enemies.setAll('body.collideWorldBounds', true);
-}
+    
+    trampolines.setAll('body.collideWorldBounds', true);
+    rockets.setAll('body.collideWorldBounds', true);
+    bananas.setAll('body.collideWorldBounds', true);
+    traps.setAll('body.collideWorldBounds', true);
 
-createSounds = () => enemySound = game.add.audio('hunterlaugh');
+    trampolines.createMultiple(10, 'trampoline');
+    rockets.createMultiple(10, 'rocket');
+    bananas.createMultiple(10, 'banana');
+    traps.createMultiple(10, 'trap');
+
+    collapsingPlatforms.createMultiple(10, 'branch');
+    collapsingPlatforms.setAll('body.collideWorldBounds', true);
+    collapsingPlatforms.setAll('body.allowGravity', false);
+    collapsingPlatforms.setAll('body.immovable', false);
+    collapsingPlatforms.setAll('body.bounce.y', 1);
+}
 
 createPlatforms = () => {
     for( let i = 0; i < 8; i++ ) {
         let initialY = 75 * (1 + i);
-        let initialX;
-        if(i === 7){
-            //the lowest initial platform is created in the center
-            initialX = 180;
-        }else{
-            //the following platforms are randomly positioned
-            initialX = game.rnd.between(0, game.width - 60);
-        }
+        let initialX = i === 7 ? 180 : game.rnd.between(0, game.width - 60);
         createPlatform('grass',null,initialY, initialX);
     }
 }
@@ -74,39 +79,12 @@ createPlatform = (type, platformVelocity, yPos, xPos) => {
     platform.body.immovable = true;
     platform.body.bounce.set(1);
     platform.body.collideWorldBounds = true;
-    platform.body.checkCollision.left = false;
-    platform.body.checkCollision.right = false;
 
+    // https://stackoverflow.com/questions/8611830/javascript-random-positive-or-negative-number
     if (platformVelocity){
         let plusOrMinus = Math.random() < 0.5 ? -1 : 1;
-        platform.body.velocity.x = platformVelocity * plusOrMinus; // https://stackoverflow.com/questions/8611830/javascript-random-positive-or-negative-number
+        platform.body.velocity.x = platformVelocity * plusOrMinus;
     }
-}
-
-createCollapsingPlatform = (yPos) => {
-    collapsingPlatform = collapsingPlatforms.create(game.rnd.between(0, game.width - 60), yPos - game.rnd.between(20, 60), 'branch');
-    collapsingPlatform.body.allowGravity = false;
-    collapsingPlatform.body.immovable = false;
-    collapsingPlatform.body.bounce.set(1);
-    collapsingPlatform.body.checkWorldBounds = true;
-    collapsingPlatform.body.outOfBoundsKill = true;
-    collapsingPlatform.scale.setTo(0.2,0.2);
-}
-
-createBanana = (yPos, xPos) => {
-    let banana = bananas.create(xPos + game.rnd.between(0, 40), yPos - 20, 'banana');
-}
-
-createRocket = (yPos, xPos) => {
-    let rocket = rockets.create(xPos + game.rnd.between(0, 40), yPos - 50, 'rocket');
-}
-
-createTrampoline = (yPos, xPos) => {
-    let trampoline = trampolines.create(xPos + game.rnd.between(0, 40), yPos - 50, 'trampoline');
-}
-
-createTrap = (yPos, xPos) => {
-    let trap = traps.create(xPos + game.rnd.between(0, 40), yPos - 50, 'trap');
 }
 
 createEnemy = (yPos, xPos, hasSheild) => {
@@ -114,14 +92,56 @@ createEnemy = (yPos, xPos, hasSheild) => {
     if(!hasSheild) enemySound.play();
     enemy = enemies.create(xPos + game.rnd.between(0, 40), yPos - 100, 'enemy' + enemyNumber);
     enemy.scale.setTo(0.2,0.2);
-    enemy.body.checkWorldBounds = true;
-    enemy.body.outOfBoundsKill = true;
+}
+
+createSpikes = () => {
+    spikes.create(0, 0, 'spikesleft');
+    spikes.create(388, 0, 'spikesright');
+    spikes.setAll('fixedToCamera', true);
+}
+
+spawnBanana = (yPos, xPos) => {
+    banana = bananas.getFirstExists(false);
+    banana.reset(xPos + game.rnd.between(0, 40), yPos - 20);
+}
+
+spawnRocket = (yPos, xPos) => {
+    rocket = rockets.getFirstExists(false);
+    rocket.reset(xPos + game.rnd.between(0, 40), yPos - 50);
+}
+
+spawnTrampoline = (yPos, xPos) => {
+    trampoline = trampolines.getFirstExists(false);
+    trampoline.reset(xPos + game.rnd.between(0, 40), yPos - 50);
+}
+
+spawnTrap = (yPos, xPos) => {
+    trap = traps.getFirstExists(false);
+    trap.reset(xPos + game.rnd.between(0, 40), yPos - 50);
+}
+
+spawnCollapsingPlatform = (yPos) => {
+    collapsingPlatform = collapsingPlatforms.getFirstExists(false);
+    collapsingPlatform.reset(game.rnd.between(0, game.width - 60), yPos - game.rnd.between(20, 60));
+    collapsingPlatform.scale.setTo(0.2,0.2);
+}
+
+outOfBoundsDestroy = (cameraYMin, item) => {
+    if(item.y - cameraYMin > 600) item.kill();
 }
 
 factory = (cameraYMin, score, hasSheild) => {
+    collapsingPlatforms.forEachAlive(function(collapsingPlatform) {outOfBoundsDestroy(cameraYMin, collapsingPlatform)});
+    bananas.forEachAlive(function(banana) {outOfBoundsDestroy(cameraYMin, banana)});
+    enemies.forEachAlive(function(enemy) {outOfBoundsDestroy(cameraYMin, enemy)});
+    rockets.forEachAlive(function(rocket) {outOfBoundsDestroy(cameraYMin, rocket)});
+    traps.forEachAlive(function(trap) {outOfBoundsDestroy(cameraYMin, trap)});
+    trampolines.forEachAlive(function(trampoline) {outOfBoundsDestroy(cameraYMin, trampoline)});
+
     platforms.forEachAlive(function(platform) {
         if(platform.y - cameraYMin > 600){
-            platform.destroy();
+            platform.kill();
+
             let y = platformY -= 75;
             let x = game.rnd.between(0, game.width - 60);
             let random = game.rnd.between(0, 500);
@@ -184,40 +204,33 @@ factory = (cameraYMin, score, hasSheild) => {
                 }
             }
 
-
-            if(random % 2 === 0) createBanana(y, x);
-            if(random % 251 === 0) createRocket(y, x);
-            if(random % 91 === 0) createTrampoline(y, x);
+            if(random % 2 === 0) spawnBanana(y, x);
+            if(random % 251 === 0) spawnRocket(y, x);
+            if(random % 91 === 0) spawnTrampoline(y, x);
             if(random % 33 === 0 && score > 10000) createEnemy(y, x, hasSheild);
-            if(random % 53 === 0 && score > 20000) createTrap(y, x);
-            if(game.rnd.between(0, 2) === 2 && score < 65000) createCollapsingPlatform(y);
+            if(random % 53 === 0 && score > 20000) spawnTrap(y, x);
+            if(game.rnd.between(0, 2) === 2 && score < 65000) spawnCollapsingPlatform(y);
             if (score >= 75000 && hasSpikes === false){
                 hasSpikes = true;
-                addSpikes();
+                createSpikes();
             }
         }
     });
 }
 
-function addSpikes () {
-    let leftSpike = spikes.create(0, 0, 'spikesleft');
-    let rightSpike = spikes.create(388, 0, 'spikesright');
-    spikes.setAll('fixedToCamera', true);
-}
-
 module.exports = {
-    preload: preload,
-    createPlatforms: createPlatforms,
-    createPlatform: createPlatform,
-    createGroups: createGroups,
-    factory: factory,
-    restartEntities: restartEntities,
-    createSounds: createSounds,
+    preload,
+    createPlatforms,
+    createPlatform,
+    createGroups,
+    factory,
+    restartEntities,
+    createSounds,
 };
 },{}],2:[function(require,module,exports){
-let Player = require("./player.js");
-let Setup = require("./setup.js");
-let Entities = require("./entities.js");
+const Player = require("./player.js");
+const Setup = require("./setup.js");
+const Entities = require("./entities.js");
 
 let score = 0;
 let cameraYMin = 0;
@@ -226,7 +239,7 @@ let gameState = 'play';
 const highScore = localStorage.getItem('highscore');
 if(highScore  === null) localStorage.setItem('highscore', 0);
 
-let game = new Phaser.Game(400, 600, Phaser.AUTO, 'phaser-example', {
+let game = new Phaser.Game(400, 600, Phaser.AUTO, 'JumpMonkeyGame', {
     preload: preload,
     create: create,
     update: update 
@@ -239,7 +252,6 @@ function preload(){
 }
 function create(){
     game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.physics.arcade.gravity.y = 0;
 
@@ -259,6 +271,7 @@ function create(){
     Setup.createUI();
     Setup.createScore();
 
+    //BUTTONS
     startBtn = game.add.button(game.world.centerX - 37.5, 465, 'play', Setup.gameStart, this);
     startBtn.fixedToCamera = true;
 
@@ -269,9 +282,11 @@ function create(){
 }
 function update(){
     if(Player.isAlive()){
+
         Player.handleInput(cursors);
+
         handleCamera();
-        updateScore();
+        handleScore();
         Entities.factory(cameraYMin, score, Player.hasSheild());
         //COLLISION DETECTION
         game.physics.arcade.collide(bananas, platforms);
@@ -290,24 +305,36 @@ function update(){
         if(!Player.hasSheild()){
             game.physics.arcade.collide(monkey, enemies, Player.collideEnemy);
             game.physics.arcade.collide(monkey, spikes, Player.monkeyDie);
-            game.physics.arcade.collide(monkey, traps, Player.hitTrap);
+            game.physics.arcade.collide(monkey, traps, Player.collideTrap);
         };
     };
 
     if(!Player.isAlive())endGame();
 }
 
+handleCamera = () => {
+    monkey.yChange = Math.max( monkey.yChange, Math.abs( monkey.y - monkey.yOrig ) );
+    game.world.setBounds(0, -monkey.yChange, game.width, game.height + monkey.yChange);
+    cameraYMin = Math.min( cameraYMin, monkey.y - game.height + 250 );
+    game.camera.y = cameraYMin;
+}
+
+handleScore = () => {
+    scoreText.text = 'Score: ' + score;
+    score = Math.round(-game.camera.y);
+}
+
 endGame = () => {
     gameState = 'gameover';
     Setup.gameOver(score, localStorage['highscore']);
     monkey.destroy();
-    collapsingPlatforms.callAll('destroy');
+    collapsingPlatforms.callAll('kill');
     platforms.callAll('destroy');
-    bananas.callAll('destroy');
+    bananas.callAll('kill');
     enemies.callAll('destroy');
-    rockets.callAll('destroy');
-    trampolines.callAll('destroy');
-    traps.callAll('destroy');
+    rockets.callAll('kill');
+    trampolines.callAll('kill');
+    traps.callAll('kill');
 }
 
 restartGame = () => {
@@ -320,16 +347,6 @@ restartGame = () => {
     Setup.gameRestart();
     Player.respawn();
     gameState = 'play';
-}
-handleCamera = () => {
-    monkey.yChange = Math.max( monkey.yChange, Math.abs( monkey.y - monkey.yOrig ) );
-    game.world.setBounds(0, -monkey.yChange, game.width, game.height + monkey.yChange);
-    cameraYMin = Math.min( cameraYMin, monkey.y - game.height + 250 );
-    game.camera.y = cameraYMin;
-}
-updateScore = () => {
-    scoreText.text = 'Score: ' + score;
-    score = Math.round(-game.camera.y);
 }
 },{"./entities.js":1,"./player.js":3,"./setup.js":4}],3:[function(require,module,exports){
 let game;
@@ -347,8 +364,8 @@ let bananaSound;
 let rocketSound;
 let killSound;
 
-preload = (inputGame) => {
-    game = inputGame;
+preload = (gameObj) => {
+    game = gameObj;
     game.load.audio('jump', ['assets/sounds/jump.mp3', 'assets/sounds/jump.ogg']);
     game.load.audio('bounce', 'assets/sounds/boing.wav');
     game.load.audio('ouch', 'assets/sounds/ouch.wav');
@@ -411,7 +428,7 @@ handleInput = (cursors) => {
         monkey.body.velocity.x = -350;
     };
 
-    if(cursors.up.isDown || game.input.pointer2.isDown){fireBullet()};
+    if(cursors.up.isDown || game.input.pointer1.isDown) fireBullet();
     monkey.yChange = Math.max( monkey.yChange, Math.abs( monkey.y - monkey.yOrig ) );
 
     if(monkey.y - game.camera.y > game.height && !fallSoundPlayed){
@@ -420,6 +437,24 @@ handleInput = (cursors) => {
         fallSound.play();
     };
 };
+
+fireBullet = () => {
+    if(game.time.now > bulletTime){
+        bullet = bullets.getFirstExists(false);
+        if(bullet){
+            throwBanana.play();
+            bullet.reset(monkey.x + (monkey.width / 2),monkey.y);
+            bullet.body.velocity.y = -900;
+            bullet.body.velocity.x = 0;
+            if(cursors.right.isDown) bullet.body.velocity.x = 400;
+            if(cursors.left.isDown) bullet.body.velocity.x = -400;
+            bullet.angle += 35;
+            bulletTime = game.time.now + 200;
+        }
+    }
+}
+
+//=====================COLLISIONS============================
 
 monkeyJump = (monkey, platforms) => {
     if(monkey.body.touching.down && monkey.body.velocity.y >= 0){
@@ -440,15 +475,15 @@ monkeyBounce = (monkey, platforms) => {
 }
 
 collideEnemy = (monkey, enemy) => {
-    var monkeyTop = monkey.y + 10;
-    var monkeyBottom = monkey.y + monkey.height;
-    var enemyTop = enemy.y + 2;
-    var enemyBottom = enemy.y + enemy.height;
+    const monkeyTop = monkey.y + 10;
+    const monkeyBottom = monkey.y + monkey.height;
+    const enemyTop = enemy.y + 2;
+    const enemyBottom = enemy.y + enemy.height;
 
-    var monkeyLeft = monkey.x + 25;
-    var monkeyRight = monkeyLeft + monkey.width;
-    var enemyRight = enemy.x + enemy.width;
-    var enemyLeft = enemy.x;
+    const monkeyLeft = monkey.x + 25;
+    const monkeyRight = monkeyLeft + monkey.width;
+    const enemyRight = enemy.x + enemy.width;
+    const enemyLeft = enemy.x;
 
     if(monkeyBottom < enemyTop){
         killSound.play();
@@ -459,33 +494,15 @@ collideEnemy = (monkey, enemy) => {
     }
 }
 
-hitTrap = (monkey, trap) => {
-    var monkeyBottom = monkey.y + monkey.height;
-    var trapTop = trap.y + 2;
-    if(monkeyBottom < trapTop){
-        monkeyDie();
-    }
+collideTrap = (monkey, trap) => {
+    let monkeyBottom = monkey.y + monkey.height;
+    let trapTop = trap.y + 2;
+    if(monkeyBottom < trapTop) monkeyDie();
 }
 
 monkeyDie = () => {
     ouchSound.play();
     isMonkeyAlive = false;
-}
-
-fireBullet = () => {
-    if(game.time.now > bulletTime){
-        bullet = bullets.getFirstExists(false);
-        if(bullet){
-            throwBanana.play();
-            bullet.reset(monkey.x + (monkey.width / 2),monkey.y);
-            bullet.body.velocity.y = -900;
-            bullet.body.velocity.x = 0;
-            if(cursors.right.isDown){bullet.body.velocity.x = 400;}
-            if(cursors.left.isDown){bullet.body.velocity.x = -400;}
-            bullet.angle += 35;
-            bulletTime = game.time.now + 200;
-        }
-    }
 }
 
 collectBanana = (monkey, banana) => {
@@ -509,29 +526,29 @@ shootEnemy = (bullets, enemy) => {
 }
 
 module.exports = {
-    preload: preload,
-    createMonkey: createMonkey,
-    handleInput: handleInput,
-    createBullets: createBullets,
-    monkeyJump: monkeyJump,
-    monkeyBounce: monkeyBounce,
-    collectBanana: collectBanana,
-    collectRocket: collectRocket,
-    shootEnemy: shootEnemy,
-    hasSheild: hasSheild,
-    collideEnemy: collideEnemy,
-    isAlive: isAlive,
-    respawn: respawn,
-    createSounds: createSounds,
-    monkeyDie: monkeyDie,
-    hitTrap: hitTrap,
+    preload,
+    createMonkey,
+    handleInput,
+    createBullets,
+    monkeyJump,
+    monkeyBounce,
+    collectBanana,
+    collectRocket,
+    shootEnemy,
+    hasSheild,
+    collideEnemy,
+    isAlive,
+    respawn,
+    createSounds,
+    monkeyDie,
+    collideTrap,
 };
 },{}],4:[function(require,module,exports){
 let game;
 let gameState = 'play';
 
-preload = (inputGame) => {
-    game = inputGame;
+preload = (gameObj) => {
+    game = gameObj;
     game.load.audio('bongos', 'assets/sounds/bongos.wav');
     game.load.image('jungle', 'assets/scenery/background.png');
     game.load.image('jungleDark', 'assets/scenery/backgroundDark.png');
@@ -600,11 +617,6 @@ gameRestart = () => {
     }
 }
 
-createSoundtrack = () => {
-    var bongos = game.add.audio('bongos',1,true);
-    bongos.play();
-}
-
 soundMute = () => {
     if (!game.sound.mute) {
         game.sound.mute = true;
@@ -615,6 +627,22 @@ soundMute = () => {
         showItem(soundOff);
         hideItem(soundOn);
     }
+}
+
+createSoundtrack = () => {
+    const bongos = game.add.audio('bongos',1,true);
+    bongos.play();
+}
+
+createBackground = () => {
+    background = game.add.tileSprite(0, 0, game.width, game.height, 'jungle');
+    background.fixedToCamera = true;
+}
+createScore = () => {
+    scoreText = game.add.text(16,16,'', { fontSize: '32px', fill: '#ffffff' });
+    scoreText.setShadow(3, 3, 'rgba(0,0,0,0.5)', 2);
+    scoreText.fixedToCamera = true;
+    scoreText.alpha = false;
 }
 
 createUI = () => {
@@ -671,16 +699,6 @@ createUI = () => {
     soundOn.visible = false;
 }
 
-createBackground = () => {
-    background = game.add.tileSprite(0, 0, game.width, game.height, 'jungle');
-    background.fixedToCamera = true;
-}
-createScore = () => {
-    scoreText = game.add.text(16,16,'', { fontSize: '32px', fill: '#ffffff' });
-    scoreText.fixedToCamera = true;
-    scoreText.alpha = false;
-}
-
 showItem = (item, fade = false) => {
     item.visible = true;
     if(fade){
@@ -696,15 +714,15 @@ hideItem = (item, fade = false) => {
 }
 
 module.exports = {
-    preload: preload,
-    createSoundtrack: createSoundtrack,
-    createBackground: createBackground,
-    createScore: createScore,
-    gameStart: gameStart,
-    gameOver: gameOver,
-    gameRestart: gameRestart,
-    createUI: createUI,
-    hideItem: hideItem,
-    showItem: showItem,
+    preload,
+    createSoundtrack,
+    createBackground,
+    createScore,
+    gameStart,
+    gameOver,
+    gameRestart,
+    createUI,
+    hideItem,
+    showItem,
 };
 },{}]},{},[2]);

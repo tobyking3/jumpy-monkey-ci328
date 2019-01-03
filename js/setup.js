@@ -1,8 +1,8 @@
 let game;
 let gameState = 'play';
 
-preload = (inputGame) => {
-    game = inputGame;
+preload = (gameObj) => {
+    game = gameObj;
     game.load.audio('bongos', 'assets/sounds/bongos.wav');
     game.load.image('jungle', 'assets/scenery/background.png');
     game.load.image('jungleDark', 'assets/scenery/backgroundDark.png');
@@ -71,11 +71,6 @@ gameRestart = () => {
     }
 }
 
-createSoundtrack = () => {
-    var bongos = game.add.audio('bongos',1,true);
-    bongos.play();
-}
-
 soundMute = () => {
     if (!game.sound.mute) {
         game.sound.mute = true;
@@ -86,6 +81,22 @@ soundMute = () => {
         showItem(soundOff);
         hideItem(soundOn);
     }
+}
+
+createSoundtrack = () => {
+    const bongos = game.add.audio('bongos',1,true);
+    bongos.play();
+}
+
+createBackground = () => {
+    background = game.add.tileSprite(0, 0, game.width, game.height, 'jungle');
+    background.fixedToCamera = true;
+}
+createScore = () => {
+    scoreText = game.add.text(16,16,'', { fontSize: '32px', fill: '#ffffff' });
+    scoreText.setShadow(3, 3, 'rgba(0,0,0,0.5)', 2);
+    scoreText.fixedToCamera = true;
+    scoreText.alpha = false;
 }
 
 createUI = () => {
@@ -142,16 +153,6 @@ createUI = () => {
     soundOn.visible = false;
 }
 
-createBackground = () => {
-    background = game.add.tileSprite(0, 0, game.width, game.height, 'jungle');
-    background.fixedToCamera = true;
-}
-createScore = () => {
-    scoreText = game.add.text(16,16,'', { fontSize: '32px', fill: '#ffffff' });
-    scoreText.fixedToCamera = true;
-    scoreText.alpha = false;
-}
-
 showItem = (item, fade = false) => {
     item.visible = true;
     if(fade){
@@ -167,14 +168,14 @@ hideItem = (item, fade = false) => {
 }
 
 module.exports = {
-    preload: preload,
-    createSoundtrack: createSoundtrack,
-    createBackground: createBackground,
-    createScore: createScore,
-    gameStart: gameStart,
-    gameOver: gameOver,
-    gameRestart: gameRestart,
-    createUI: createUI,
-    hideItem: hideItem,
-    showItem: showItem,
+    preload,
+    createSoundtrack,
+    createBackground,
+    createScore,
+    gameStart,
+    gameOver,
+    gameRestart,
+    createUI,
+    hideItem,
+    showItem,
 };

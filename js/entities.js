@@ -3,8 +3,8 @@ let platformY = 75;
 let enemySound;
 let hasSpikes = false;
 
-preload = (inputGame) => {
-    game = inputGame;
+preload = (gameObj) => {
+    game = gameObj;
 
     game.load.audio('bananaCollection', 'assets/sounds/collectbanana.wav');
     game.load.audio('rocketCollection', 'assets/sounds/collectrocket.wav');
@@ -31,6 +31,8 @@ preload = (inputGame) => {
 
 restartEntities = () => platformY = 75;
 
+createSounds = () => enemySound = game.sound.add('hunterlaugh');
+
 createGroups = () => {
     platforms           = game.add.physicsGroup();
     collapsingPlatforms = game.add.physicsGroup();
@@ -42,26 +44,29 @@ createGroups = () => {
     traps               = game.add.physicsGroup();
 
     platforms.setAll('body.collideWorldBounds', true);
-    collapsingPlatforms.setAll('body.collideWorldBounds', true);
-    bananas.setAll('body.collideWorldBounds', true);
-    rockets.setAll('body.collideWorldBounds', true);
-    trampolines.setAll('body.collideWorldBounds', true);
     enemies.setAll('body.collideWorldBounds', true);
-}
+    
+    trampolines.setAll('body.collideWorldBounds', true);
+    rockets.setAll('body.collideWorldBounds', true);
+    bananas.setAll('body.collideWorldBounds', true);
+    traps.setAll('body.collideWorldBounds', true);
 
-createSounds = () => enemySound = game.add.audio('hunterlaugh');
+    trampolines.createMultiple(10, 'trampoline');
+    rockets.createMultiple(10, 'rocket');
+    bananas.createMultiple(10, 'banana');
+    traps.createMultiple(10, 'trap');
+
+    collapsingPlatforms.createMultiple(10, 'branch');
+    collapsingPlatforms.setAll('body.collideWorldBounds', true);
+    collapsingPlatforms.setAll('body.allowGravity', false);
+    collapsingPlatforms.setAll('body.immovable', false);
+    collapsingPlatforms.setAll('body.bounce.y', 1);
+}
 
 createPlatforms = () => {
     for( let i = 0; i < 8; i++ ) {
         let initialY = 75 * (1 + i);
-        let initialX;
-        if(i === 7){
-            //the lowest initial platform is created in the center
-            initialX = 180;
-        }else{
-            //the following platforms are randomly positioned
-            initialX = game.rnd.between(0, game.width - 60);
-        }
+        let initialX = i === 7 ? 180 : game.rnd.between(0, game.width - 60);
         createPlatform('grass',null,initialY, initialX);
     }
 }
@@ -73,39 +78,12 @@ createPlatform = (type, platformVelocity, yPos, xPos) => {
     platform.body.immovable = true;
     platform.body.bounce.set(1);
     platform.body.collideWorldBounds = true;
-    platform.body.checkCollision.left = false;
-    platform.body.checkCollision.right = false;
 
+    // https://stackoverflow.com/questions/8611830/javascript-random-positive-or-negative-number
     if (platformVelocity){
         let plusOrMinus = Math.random() < 0.5 ? -1 : 1;
-        platform.body.velocity.x = platformVelocity * plusOrMinus; // https://stackoverflow.com/questions/8611830/javascript-random-positive-or-negative-number
+        platform.body.velocity.x = platformVelocity * plusOrMinus;
     }
-}
-
-createCollapsingPlatform = (yPos) => {
-    collapsingPlatform = collapsingPlatforms.create(game.rnd.between(0, game.width - 60), yPos - game.rnd.between(20, 60), 'branch');
-    collapsingPlatform.body.allowGravity = false;
-    collapsingPlatform.body.immovable = false;
-    collapsingPlatform.body.bounce.set(1);
-    collapsingPlatform.body.checkWorldBounds = true;
-    collapsingPlatform.body.outOfBoundsKill = true;
-    collapsingPlatform.scale.setTo(0.2,0.2);
-}
-
-createBanana = (yPos, xPos) => {
-    let banana = bananas.create(xPos + game.rnd.between(0, 40), yPos - 20, 'banana');
-}
-
-createRocket = (yPos, xPos) => {
-    let rocket = rockets.create(xPos + game.rnd.between(0, 40), yPos - 50, 'rocket');
-}
-
-createTrampoline = (yPos, xPos) => {
-    let trampoline = trampolines.create(xPos + game.rnd.between(0, 40), yPos - 50, 'trampoline');
-}
-
-createTrap = (yPos, xPos) => {
-    let trap = traps.create(xPos + game.rnd.between(0, 40), yPos - 50, 'trap');
 }
 
 createEnemy = (yPos, xPos, hasSheild) => {
@@ -113,14 +91,56 @@ createEnemy = (yPos, xPos, hasSheild) => {
     if(!hasSheild) enemySound.play();
     enemy = enemies.create(xPos + game.rnd.between(0, 40), yPos - 100, 'enemy' + enemyNumber);
     enemy.scale.setTo(0.2,0.2);
-    enemy.body.checkWorldBounds = true;
-    enemy.body.outOfBoundsKill = true;
+}
+
+createSpikes = () => {
+    spikes.create(0, 0, 'spikesleft');
+    spikes.create(388, 0, 'spikesright');
+    spikes.setAll('fixedToCamera', true);
+}
+
+spawnBanana = (yPos, xPos) => {
+    banana = bananas.getFirstExists(false);
+    banana.reset(xPos + game.rnd.between(0, 40), yPos - 20);
+}
+
+spawnRocket = (yPos, xPos) => {
+    rocket = rockets.getFirstExists(false);
+    rocket.reset(xPos + game.rnd.between(0, 40), yPos - 50);
+}
+
+spawnTrampoline = (yPos, xPos) => {
+    trampoline = trampolines.getFirstExists(false);
+    trampoline.reset(xPos + game.rnd.between(0, 40), yPos - 50);
+}
+
+spawnTrap = (yPos, xPos) => {
+    trap = traps.getFirstExists(false);
+    trap.reset(xPos + game.rnd.between(0, 40), yPos - 50);
+}
+
+spawnCollapsingPlatform = (yPos) => {
+    collapsingPlatform = collapsingPlatforms.getFirstExists(false);
+    collapsingPlatform.reset(game.rnd.between(0, game.width - 60), yPos - game.rnd.between(20, 60));
+    collapsingPlatform.scale.setTo(0.2,0.2);
+}
+
+outOfBoundsDestroy = (cameraYMin, item) => {
+    if(item.y - cameraYMin > 600) item.kill();
 }
 
 factory = (cameraYMin, score, hasSheild) => {
+    collapsingPlatforms.forEachAlive(function(collapsingPlatform) {outOfBoundsDestroy(cameraYMin, collapsingPlatform)});
+    bananas.forEachAlive(function(banana) {outOfBoundsDestroy(cameraYMin, banana)});
+    enemies.forEachAlive(function(enemy) {outOfBoundsDestroy(cameraYMin, enemy)});
+    rockets.forEachAlive(function(rocket) {outOfBoundsDestroy(cameraYMin, rocket)});
+    traps.forEachAlive(function(trap) {outOfBoundsDestroy(cameraYMin, trap)});
+    trampolines.forEachAlive(function(trampoline) {outOfBoundsDestroy(cameraYMin, trampoline)});
+
     platforms.forEachAlive(function(platform) {
         if(platform.y - cameraYMin > 600){
-            platform.destroy();
+            platform.kill();
+
             let y = platformY -= 75;
             let x = game.rnd.between(0, game.width - 60);
             let random = game.rnd.between(0, 500);
@@ -183,33 +203,26 @@ factory = (cameraYMin, score, hasSheild) => {
                 }
             }
 
-
-            if(random % 2 === 0) createBanana(y, x);
-            if(random % 251 === 0) createRocket(y, x);
-            if(random % 91 === 0) createTrampoline(y, x);
+            if(random % 2 === 0) spawnBanana(y, x);
+            if(random % 251 === 0) spawnRocket(y, x);
+            if(random % 91 === 0) spawnTrampoline(y, x);
             if(random % 33 === 0 && score > 10000) createEnemy(y, x, hasSheild);
-            if(random % 53 === 0 && score > 20000) createTrap(y, x);
-            if(game.rnd.between(0, 2) === 2 && score < 65000) createCollapsingPlatform(y);
+            if(random % 53 === 0 && score > 20000) spawnTrap(y, x);
+            if(game.rnd.between(0, 2) === 2 && score < 65000) spawnCollapsingPlatform(y);
             if (score >= 75000 && hasSpikes === false){
                 hasSpikes = true;
-                addSpikes();
+                createSpikes();
             }
         }
     });
 }
 
-function addSpikes () {
-    let leftSpike = spikes.create(0, 0, 'spikesleft');
-    let rightSpike = spikes.create(388, 0, 'spikesright');
-    spikes.setAll('fixedToCamera', true);
-}
-
 module.exports = {
-    preload: preload,
-    createPlatforms: createPlatforms,
-    createPlatform: createPlatform,
-    createGroups: createGroups,
-    factory: factory,
-    restartEntities: restartEntities,
-    createSounds: createSounds,
+    preload,
+    createPlatforms,
+    createPlatform,
+    createGroups,
+    factory,
+    restartEntities,
+    createSounds,
 };
