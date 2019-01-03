@@ -569,7 +569,6 @@ gameStart = () => {
     game.physics.arcade.gravity.y = 1000;
     hideItem(startScreen);
     hideItem(startBtn);
-    hideItem(instructionsText);
     showItem(scoreText, true);
 }
 
@@ -658,11 +657,6 @@ createUI = () => {
     startScreen = game.add.sprite(0, 0, 'startScreen');
     startScreen.fixedToCamera = true;
     gameStartUI.add(startScreen);
-
-    instructionsText = game.add.text(0,0,'', { fontSize: '12px', fill: '#ffffff', boundsAlignH: "center", boundsAlignV: "middle"}, gameStartUI);
-    instructionsText.text = 'Use the arrow keys to move and shoot.';
-    instructionsText.fixedToCamera = true;
-    instructionsText.setTextBounds(0, 180, 400, 100);
 
     // GAME OVER
 
