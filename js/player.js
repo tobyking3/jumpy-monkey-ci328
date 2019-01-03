@@ -70,14 +70,14 @@ handleInput = (cursors) => {
     monkey.body.velocity.x = 0;
     game.world.wrap( monkey, 10, false );
 
-    if((cursors.right.isDown && !cursors.left.isDown) || (game.input.pointer1.isDown && game.input.pointer1.x > game.world.centerX)){
+    if((cursors.right.isDown && !cursors.left.isDown) || (game.input.pointer1.isDown && game.input.pointer1.x > game.world.centerX && game.input.pointer1.y > 350)){
         monkey.body.velocity.x = 350;
     };
-    if((cursors.left.isDown && !cursors.right.isDown) || (game.input.pointer1.isDown && game.input.pointer1.x < game.world.centerX)){
+    if((cursors.left.isDown && !cursors.right.isDown) || (game.input.pointer1.isDown && game.input.pointer1.x < game.world.centerX && game.input.pointer1.y > 350)){
         monkey.body.velocity.x = -350;
     };
 
-    if(cursors.up.isDown || game.input.pointer2.isDown) fireBullet();
+    if(cursors.up.isDown || (game.input.pointer2.isDown && game.input.pointer2.y < 250)) fireBullet();
     monkey.yChange = Math.max( monkey.yChange, Math.abs( monkey.y - monkey.yOrig ) );
 
     if(monkey.y - game.camera.y > game.height && !fallSoundPlayed){

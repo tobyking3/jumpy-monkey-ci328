@@ -79,6 +79,8 @@ createPlatform = (type, platformVelocity, yPos, xPos) => {
     platform.body.immovable = true;
     platform.body.bounce.set(1);
     platform.body.collideWorldBounds = true;
+    platform.body.checkCollision.left = false;
+    platform.body.checkCollision.right = false;
 
     // https://stackoverflow.com/questions/8611830/javascript-random-positive-or-negative-number
     if (platformVelocity){
@@ -421,14 +423,14 @@ handleInput = (cursors) => {
     monkey.body.velocity.x = 0;
     game.world.wrap( monkey, 10, false );
 
-    if((cursors.right.isDown && !cursors.left.isDown) || (game.input.pointer1.isDown && game.input.pointer1.x > game.world.centerX)){
+    if((cursors.right.isDown && !cursors.left.isDown) || (game.input.pointer1.isDown && game.input.pointer1.x > game.world.centerX && game.input.pointer1.y > 350)){
         monkey.body.velocity.x = 350;
     };
-    if((cursors.left.isDown && !cursors.right.isDown) || (game.input.pointer1.isDown && game.input.pointer1.x < game.world.centerX)){
+    if((cursors.left.isDown && !cursors.right.isDown) || (game.input.pointer1.isDown && game.input.pointer1.x < game.world.centerX && game.input.pointer1.y > 350)){
         monkey.body.velocity.x = -350;
     };
 
-    if(cursors.up.isDown || game.input.pointer1.isDown) fireBullet();
+    if(cursors.up.isDown || (game.input.pointer2.isDown && game.input.pointer2.y < 250)) fireBullet();
     monkey.yChange = Math.max( monkey.yChange, Math.abs( monkey.y - monkey.yOrig ) );
 
     if(monkey.y - game.camera.y > game.height && !fallSoundPlayed){
@@ -446,8 +448,8 @@ fireBullet = () => {
             bullet.reset(monkey.x + (monkey.width / 2),monkey.y);
             bullet.body.velocity.y = -900;
             bullet.body.velocity.x = 0;
-            if(cursors.right.isDown) bullet.body.velocity.x = 400;
-            if(cursors.left.isDown) bullet.body.velocity.x = -400;
+            if(cursors.right.isDown || game.input.pointer2.x > 300) bullet.body.velocity.x = 400;
+            if(cursors.left.isDown || game.input.pointer2.x < 100) bullet.body.velocity.x = -400;
             bullet.angle += 35;
             bulletTime = game.time.now + 200;
         }
