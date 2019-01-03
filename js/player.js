@@ -99,8 +99,8 @@ fireBullet = () => {
             bullet.body.velocity.y = -900;
             bullet.body.velocity.x = 0;
             //add a direction to the bullet when the left and right cursors are down or when the touch is near the edge of the screen
-            if(cursors.right.isDown || game.input.pointer1.x > 300) bullet.body.velocity.x = 400;
-            if(cursors.left.isDown || game.input.pointer1.x < 100) bullet.body.velocity.x = -400;
+            if(cursors.right.isDown || (game.input.pointer1.isDown && game.input.pointer1.x > 300)) bullet.body.velocity.x = 400;
+            if(cursors.left.isDown || (game.input.pointer1.isDown && game.input.pointer1.x < 100)) bullet.body.velocity.x = -400;
             bullet.angle += 35;
             bulletTime = game.time.now + 200;
         }
