@@ -78,6 +78,8 @@ createPlatform = (type, platformVelocity, yPos, xPos) => {
     platform.body.immovable = true;
     platform.body.bounce.set(1);
     platform.body.collideWorldBounds = true;
+    platform.body.checkCollision.left = false;
+    platform.body.checkCollision.right = false;
 
     // https://stackoverflow.com/questions/8611830/javascript-random-positive-or-negative-number
     if (platformVelocity){
