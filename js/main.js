@@ -58,7 +58,7 @@ function update(){
 
         handleCamera();
         handleScore();
-        Entities.factory(cameraYMin, score, Player.hasSheild());
+        Entities.factory(cameraYMin, score, Player.hasShield());
         //COLLISION DETECTION
         game.physics.arcade.collide(bananas, platforms);
         game.physics.arcade.collide(rockets, platforms);
@@ -72,8 +72,8 @@ function update(){
         //OVERLAP COLLECT
         game.physics.arcade.overlap(monkey, bananas, Player.collectBanana);
         game.physics.arcade.overlap(monkey, rockets, Player.collectRocket);
-        //Only check for collision when the monkey does not have the sheild which is set when collecting the rocket
-        if(!Player.hasSheild()){
+        //Only check for collision when the monkey does not have the shield which is set when collecting the rocket
+        if(!Player.hasShield()){
             game.physics.arcade.collide(monkey, enemies, Player.collideEnemy);
             game.physics.arcade.collide(monkey, spikes, Player.monkeyDie);
             game.physics.arcade.collide(monkey, traps, Player.collideTrap);

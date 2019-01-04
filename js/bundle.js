@@ -74,14 +74,14 @@ createGroups = () => {
 createPlatforms = () => {
     for( let i = 0; i < 8; i++ ) {
         let initialY = 75 * (1 + i);
-        //conditional (ternary) operator to center the lowest platform and randomize the others
+        //conditional (ternary) operator to centre the lowest platform and randomize the others
         let initialX = i === 7 ? 180 : game.rnd.between(0, game.width - 60);
         createPlatform('grass',null,initialY, initialX);
     }
 }
 
 createPlatform = (type, platformVelocity, yPos, xPos) => {
-    //Returns the first dead platform an recycles it
+    //Returns the first dead platform and recycles it
     platform = platforms.getFirstDead(true, xPos, yPos, type);
     platform.scale.setTo(0.2,0.2);
     platform.body.allowGravity = false;
@@ -97,10 +97,10 @@ createPlatform = (type, platformVelocity, yPos, xPos) => {
     }
 }
 
-createEnemy = (yPos, xPos, hasSheild) => {
+createEnemy = (yPos, xPos, hasShield) => {
     //creates an enemy from one of the three enemy image variations
     let enemyNumber = game.rnd.between(1, 3);
-    if(!hasSheild) enemySound.play();
+    if(!hasShield) enemySound.play();
     enemy = enemies.create(xPos + game.rnd.between(0, 40), yPos - 100, 'enemy' + enemyNumber);
     enemy.scale.setTo(0.2,0.2);
 }
@@ -143,7 +143,7 @@ outOfBoundsDestroy = (cameraYMin, item) => {
     if(item.y - cameraYMin > 600) item.kill();
 }
 
-factory = (cameraYMin, score, hasSheild) => {
+factory = (cameraYMin, score, hasShield) => {
     collapsingPlatforms.forEachAlive(function(collapsingPlatform) {outOfBoundsDestroy(cameraYMin, collapsingPlatform)});
     bananas.forEachAlive(function(banana) {outOfBoundsDestroy(cameraYMin, banana)});
     enemies.forEachAlive(function(enemy) {outOfBoundsDestroy(cameraYMin, enemy)});
@@ -223,12 +223,11 @@ factory = (cameraYMin, score, hasSheild) => {
                 }
             }
 
-
             //randomly generate entities
             if(random % 2 === 0) spawnBanana(y, x);
             if(random % 251 === 0) spawnRocket(y, x);
             if(random % 91 === 0) spawnTrampoline(y, x);
-            if(random % 33 === 0 && score > 10000) createEnemy(y, x, hasSheild);
+            if(random % 33 === 0 && score > 10000) createEnemy(y, x, hasShield);
             if(random % 53 === 0 && score > 20000) spawnTrap(y, x);
             if(game.rnd.between(0, 2) === 2 && score < 65000) spawnCollapsingPlatform(y);
             if (score >= 75000 && hasSpikes === false){
@@ -309,7 +308,7 @@ function update(){
 
         handleCamera();
         handleScore();
-        Entities.factory(cameraYMin, score, Player.hasSheild());
+        Entities.factory(cameraYMin, score, Player.hasShield());
         //COLLISION DETECTION
         game.physics.arcade.collide(bananas, platforms);
         game.physics.arcade.collide(rockets, platforms);
@@ -323,8 +322,8 @@ function update(){
         //OVERLAP COLLECT
         game.physics.arcade.overlap(monkey, bananas, Player.collectBanana);
         game.physics.arcade.overlap(monkey, rockets, Player.collectRocket);
-        //Only check for collision when the monkey does not have the sheild which is set when collecting the rocket
-        if(!Player.hasSheild()){
+        //Only check for collision when the monkey does not have the shield which is set when collecting the rocket
+        if(!Player.hasShield()){
             game.physics.arcade.collide(monkey, enemies, Player.collideEnemy);
             game.physics.arcade.collide(monkey, spikes, Player.monkeyDie);
             game.physics.arcade.collide(monkey, traps, Player.collideTrap);
@@ -383,7 +382,7 @@ restartGame = () => {
 },{"./entities.js":1,"./player.js":3,"./setup.js":4}],3:[function(require,module,exports){
 let game;
 let bulletTime = 0;
-let monkeySheild = false;
+let monkeyShield = false;
 let isMonkeyAlive = true;
 let fallSoundPlayed = false;
 
@@ -411,7 +410,7 @@ isAlive = () => isMonkeyAlive;
 
 respawn = () => isMonkeyAlive = true;
 
-hasSheild = () => monkeySheild;
+hasShield = () => monkeyShield;
 
 createMonkey = () => {
     fallSoundPlayed = false;
@@ -497,7 +496,7 @@ monkeyJump = (monkey, platforms) => {
         jumpSound.play();
         monkey.animations.play('fall');
         monkey.body.velocity.y = -600;
-        monkeySheild = false;
+        monkeyShield = false;
     }
 }
 
@@ -506,7 +505,7 @@ monkeyBounce = (monkey, platforms) => {
         bounceSound.play();
         monkey.animations.play('fall');
         monkey.body.velocity.y = -1000;
-        monkeySheild = false;
+        monkeyShield = false;
     }
 }
 
@@ -549,12 +548,12 @@ collectBanana = (monkey, banana) => {
 }
 
 collectRocket = (monkey, rocket) => {
-    if(!monkeySheild){
+    if(!monkeyShield){
         rocketSound.play();
         rocket.kill();
         monkey.body.velocity.y = -3000
         monkey.animations.play('rocket');
-        monkeySheild = true;
+        monkeyShield = true;
     }
 }
 
@@ -573,7 +572,7 @@ module.exports = {
     collectBanana,
     collectRocket,
     shootEnemy,
-    hasSheild,
+    hasShield,
     collideEnemy,
     isAlive,
     respawn,

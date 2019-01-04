@@ -1,6 +1,6 @@
 let game;
 let bulletTime = 0;
-let monkeySheild = false;
+let monkeyShield = false;
 let isMonkeyAlive = true;
 let fallSoundPlayed = false;
 
@@ -28,7 +28,7 @@ isAlive = () => isMonkeyAlive;
 
 respawn = () => isMonkeyAlive = true;
 
-hasSheild = () => monkeySheild;
+hasShield = () => monkeyShield;
 
 createMonkey = () => {
     fallSoundPlayed = false;
@@ -114,7 +114,7 @@ monkeyJump = (monkey, platforms) => {
         jumpSound.play();
         monkey.animations.play('fall');
         monkey.body.velocity.y = -600;
-        monkeySheild = false;
+        monkeyShield = false;
     }
 }
 
@@ -123,7 +123,7 @@ monkeyBounce = (monkey, platforms) => {
         bounceSound.play();
         monkey.animations.play('fall');
         monkey.body.velocity.y = -1000;
-        monkeySheild = false;
+        monkeyShield = false;
     }
 }
 
@@ -166,12 +166,12 @@ collectBanana = (monkey, banana) => {
 }
 
 collectRocket = (monkey, rocket) => {
-    if(!monkeySheild){
+    if(!monkeyShield){
         rocketSound.play();
         rocket.kill();
         monkey.body.velocity.y = -3000
         monkey.animations.play('rocket');
-        monkeySheild = true;
+        monkeyShield = true;
     }
 }
 
@@ -190,7 +190,7 @@ module.exports = {
     collectBanana,
     collectRocket,
     shootEnemy,
-    hasSheild,
+    hasShield,
     collideEnemy,
     isAlive,
     respawn,
