@@ -302,12 +302,14 @@ function create(){
     restartBtn.alpha = 0;
 }
 function update(){
-    if(Player.isAlive()){
 
+    handleCamera();
+
+    if(Player.isAlive()){
         Player.handleInput(cursors);
 
-        handleCamera();
         handleScore();
+
         Entities.factory(cameraYMin, score, Player.hasShield());
         //COLLISION DETECTION
         game.physics.arcade.collide(bananas, platforms);
